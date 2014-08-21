@@ -14,27 +14,14 @@ public class LocalFileList extends FileList {
 	@Override
 	List<FileToSync> getFileList(String path) {
 		File file=new File(path);
-		if (file.isDirectory()){
 			for (File f: file.listFiles()){
-				if (!f.isDirectory()){
+				if (f.isFile()){
 					String filePath=f.getAbsolutePath();
-					syncList.add(new FileToSync(filePath.substring(this.path.length(),filePath.length()), new Date(f.lastModified())));
-				}else{
+					syncList.add(new FileToSync(filePath.substring(this.path.length()), new Date(f.lastModified())));
+				}else if (f.isDirectory()){
 					getFileList(f.getAbsolutePath());
 				}
 			}	
-		}else{
-			String filePath=file.getAbsolutePath();
-			syncList.add(new FileToSync(filePath.substring(this.path.length(),filePath.length()), new Date(file.lastModified())));
-		}
-		
 		return syncList;
-	}
-	
-	public static void main(String ... arg){
-		LocalFileList l= new LocalFileList("d:\\");
-		l.getFileList(l.path);
-		System.out.println(l.path);
-		System.out.println(syncList);
 	}
 }

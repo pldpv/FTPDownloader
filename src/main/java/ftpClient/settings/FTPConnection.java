@@ -1,42 +1,37 @@
 package ftpClient.settings;
 
-import it.sauronsoftware.ftp4j.FTPClient;
-import it.sauronsoftware.ftp4j.FTPException;
-import it.sauronsoftware.ftp4j.FTPIllegalReplyException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.net.ftp.FTPClient;
 
 public class FTPConnection {
-	private FTPClient ftpClient = null;
-	
-	/**
-	 * 
-	 * @return Connecting and logging FTPClient
-	 * @throws FileNotFoundException when configuration file for FTP is not found
-	 * @throws IOException
-	 * @throws NumberFormatException when Port setting are invalid
-	 * @throws IllegalStateException
-	 * @throws FTPIllegalReplyException
-	 * @throws FTPException
-	 */
-	
-	public FTPClient connect() throws FileNotFoundException, IOException,
-			NumberFormatException, IllegalStateException,
-			FTPIllegalReplyException, FTPException {
-		ftpClient = new FTPClient();
-		Settings settings = new Settings();
-		settings.load();
-		ftpClient.connect(settings.getServer(),
-				Integer.parseInt(settings.getPort()));
-		ftpClient.setPassive(new Boolean(settings.getPassiveMode()));
-		ftpClient.login(settings.getUserName(), settings.getPassword());
+	private static FTPClient ftpClient = null;
+
+	public static FTPClient connect() throws FileNotFoundException, IOException {
+		if (ftpClient == null) {
+			ftpClient = new FTPClient();
+			ftpClient.setControlEncoding("cp1251");
+			ftpClient.setDataTimeout(100000);
+			Settings settings = new Settings();
+			settings.load();
+			ftpClient.connect(settings.getServer(),
+					Integer.parseInt(settings.getPort()));
+			if (new Boolean(settings.getPassiveMode())) {
+				ftpClient.enterLocalPassiveMode();
+			}
+
+			ftpClient.login(settings.getUserName(), settings.getPassword());
+		}
 		return ftpClient;
 	}
 
-	public void disconnect() throws IllegalStateException, IOException,
-			FTPIllegalReplyException, FTPException {
+	public void disconnect() throws IOException {
 		if (ftpClient != null && ftpClient.isConnected())
-			ftpClient.disconnect(true);
+			ftpClient.disconnect();
+	}
+	public static void main(String ...strings) throws FileNotFoundException, IOException{
+		FTPClient ftp=connect();
 	}
 }
